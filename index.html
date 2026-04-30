@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WOLFLIX Masterclass: Coyote vs. ACME</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        acme: {
+                            yellow: '#fde047',
+                            red: '#ef4444',
+                            blue: '#3b82f6',
+                            dark: '#0f172a',
+                            white: '#ffffff'
+                        }
+                    },
+                    fontFamily: {
+                        comic: ['Bangers', 'cursive'],
+                        base: ['Nunito', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fde047;
+            color: #0f172a;
+            font-family: 'Nunito', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            background-image: radial-gradient(#ef4444 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        /* --- Neo-Brutalism UI --- */
+        .acme-panel {
+            background-color: #ffffff;
+            border: 4px solid #0f172a;
+            box-shadow: 6px 6px 0px #0f172a;
+            border-radius: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .acme-btn {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: 4px solid #0f172a;
+            box-shadow: 4px 4px 0px #0f172a;
+            border-radius: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            transition: all 0.1s ease;
+            cursor: pointer;
+        }
+        .acme-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px #0f172a;
+        }
+        .acme-btn-red { background-color: #ef4444; }
+        .acme-btn-yellow { background-color: #fde047; color: #0f172a; }
+        .acme-btn-green { background-color: #22c55e; }
+
+        /* --- Layout & Scroll Fixes (Correção da Tela Cheia e Redução) --- */
+        .page {
+            display: none; 
+            width: 100%; 
+            height: 100%;
+            overflow-y: auto; 
+            position: relative; 
+            z-index: 10;
+        }
+        .page.active { 
+            display: flex; 
+            flex-direction: column; /* Necessário para o margin: auto funcionar no scroll */
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+        }
+        .page-content { 
+            margin: auto; /* Centra perfeitamente, mas quando o conteúdo cresce, encosta ao topo permitindo o scroll limpo */
+            width: 100%; max-width: 900px; 
+            display: flex; flex-direction: column; align-items: center; 
+            text-align: center; 
+            padding: 2rem 1rem 6rem 1rem; 
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* --- Interactive Cards --- */
+        .interactive-card { cursor: pointer; transition: all 0.3s ease; }
+        .interactive-card:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0px #0f172a; }
+        .reveal-content { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; }
+        .interactive-card.open .reveal-content { max-height: 300px; opacity: 1; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 3px dashed #0f172a; }
+
+        /* --- Video Containers --- */
+        .comic-frame {
+            padding: 0; background: #000;
+            border-radius: 12px; border: 6px solid #0f172a;
+            box-shadow: 8px 8px 0px #0f172a;
+            overflow: hidden;
+        }
+
+        /* --- Praise System Animations --- */
+        @keyframes popUpPraise {
+            0% { transform: translate(-50%, -50%) scale(0.2) rotate(-10deg); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+        }
+        .praise-anim { animation: popUpPraise 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* --- UV Flashlight Mechanic --- */
+        #uv-container {
+            position: relative; overflow: hidden; background: #0f172a; 
+            border: 6px solid #0f172a; border-radius: 12px; cursor: crosshair;
+            box-shadow: 6px 6px 0px #0f172a;
+        }
+        #uv-hidden-text {
+            position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #fde047; font-family: 'Bangers', cursive; font-size: 2.5rem; letter-spacing: 2px; text-shadow: 0 0 15px #ef4444; text-align: center;
+        }
+        #uv-overlay { position: absolute; inset: 0; background: #0f172a; transition: opacity 0.5s; }
+        .scan-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); font-family: 'Bangers'; font-size: 1.5rem; pointer-events: none; animation: pulse 2s infinite; z-index: 50; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #0f172a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ef4444; }
+    </style>
+</head>
+<body class="selection:bg-acme-red selection:text-white">
+
+    <!-- GIANT PRAISE POPUP -->
+    <div id="praise-popup" class="fixed top-1/2 left-1/2 hidden text-acme-red font-black text-4xl md:text-6xl text-center z-[10000] drop-shadow-[4px_4px_0px_#0f172a] uppercase tracking-tighter w-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2 font-comic">
+        <span id="praise-text" class="bg-white px-6 py-2 border-4 border-acme-dark rounded-2xl inline-block transform rotate-[-5deg]"></span>
+    </div>
+
+    <!-- TOP BAR -->
+    <header class="fixed top-0 left-0 w-full h-16 bg-white border-b-4 border-acme-dark z-40 flex items-center justify-between px-4 md:px-6 shadow-[0_4px_0_#0f172a]">
+        <div class="flex items-center gap-2 md:gap-4">
+            <span class="text-2xl drop-shadow-[2px_2px_0px_#0f172a]">🧨</span>
+            <h1 class="font-base font-black tracking-widest text-base text-acme-dark uppercase hidden md:block">Teacher's Guide</h1>
+            <span class="bg-acme-yellow text-acme-dark border-2 border-acme-dark font-black text-[10px] md:text-xs px-2 md:px-3 py-1 rounded-lg tracking-widest md:ml-2">LEVEL: A1</span>
+        </div>
+        <div class="flex items-center gap-3 md:gap-4">
+            <!-- Praise System -->
+            <div class="flex items-center gap-2 md:gap-3 bg-slate-100 border-2 border-slate-300 rounded-xl px-3 py-1">
+                <span class="hidden lg:inline text-[10px] text-slate-500 font-bold mr-1 uppercase">Praise:</span>
+                <button onclick="triggerPraise('EXCELLENT! 🧨')" class="text-lg hover:scale-125 transition-transform" title="Excellent!">🧨</button>
+                <button onclick="triggerPraise('WELL DONE! 🎯')" class="text-lg hover:scale-125 transition-transform" title="Well Done!">🎯</button>
+                <button onclick="triggerPraise('FANTASTIC! 🌟')" class="text-lg hover:scale-125 transition-transform" title="Fantastic!">🌟</button>
+            </div>
+
+            <button onclick="toggleFullscreen()" class="font-base text-[10px] md:text-xs font-black text-acme-dark border-2 border-acme-dark rounded-lg px-3 py-1.5 hover:bg-acme-dark hover:text-white transition-colors hidden sm:block">
+                FULLSCREEN
+            </button>
+            <button onclick="toggleNotepad()" class="acme-btn acme-btn-red text-[10px] md:text-xs px-4 py-1.5">
+                NOTES
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="pt-16 pb-20 md:pb-24 w-full flex-1 relative flex flex-col z-10 overflow-hidden">
+        
+        <!-- ============================================== -->
+        <!-- ACT I: INTRODUCTION & WARM UP                  -->
+        <!-- ============================================== -->
+
+        <!-- PAGE 1: COVER -->
+        <section class="page active">
+            <div class="page-content">
+                <div class="w-full max-w-sm mb-6 relative comic-frame transform -rotate-2 hover:rotate-0 transition-transform duration-300">
+                    <img src="https://i.ytimg.com/vi/H-43VeYGiPM/maxresdefault.jpg" alt="Coyote vs ACME Cover" class="w-full h-auto object-cover">
+                </div>
+                <h1 class="text-5xl md:text-7xl font-comic uppercase tracking-wider mb-4 text-white drop-shadow-[4px_4px_0px_#0f172a]">Coyote vs. ACME</h1>
+                <p class="font-base font-black tracking-widest text-acme-dark text-sm md:text-base mb-6 bg-white px-6 py-2 border-4 border-acme-dark rounded-xl shadow-[4px_4px_0px_#0f172a]">WOLFLIX MASTERCLASS // A1 BEGINNER</p>
+            </div>
+        </section>
+
+        <!-- PAGE 2: BRIEFING -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Directive 01</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Welcome, Teacher</h1>
+                <div class="acme-panel p-6 md:p-8 max-w-3xl text-lg leading-relaxed text-acme-dark font-bold text-left">
+                    <p class="mb-4">Your student is an absolute beginner (A1). In this class, we will use the Looney Tunes universe to teach English in a very simple, visual, and fun way.</p>
+                    <p class="mb-4 bg-acme-yellow/50 p-3 rounded-lg border-2 border-acme-dark">Speak slowly. Use gestures. Show the pictures. If the student doesn't understand, point to the corresponding image.</p>
+                    <div class="bg-slate-100 p-4 rounded-xl border-2 border-acme-dark mt-4">
+                        <h3 class="font-black uppercase text-xs mb-3 text-acme-red tracking-widest">Grammar Focus (A1):</h3>
+                        <ul class="list-none space-y-3 font-base text-base">
+                            <li class="flex items-center gap-2"><span class="text-acme-blue text-xl">👉</span> <strong>Verb To Be:</strong> (Ex: "He is angry", "I am happy").</li>
+                            <li class="flex items-center gap-2"><span class="text-acme-blue text-xl">👉</span> <strong>Present Continuous:</strong> What is happening right now (Ex: "He is running").</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 3: WARM-UP 1 (CARTOONS) -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Warm-Up</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Classic Cartoons</h1>
+                <p class="text-xl mb-6 text-acme-dark font-black bg-white px-4 py-2 border-4 border-acme-dark rounded-xl shadow-[4px_4px_0px_#0f172a] transform rotate-1">Ask the student:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
+                    <div class="acme-panel p-6 hover:-translate-y-1 transition-transform">
+                        <h3 class="text-2xl font-comic text-acme-blue mb-2 tracking-wider">Question 1</h3>
+                        <p class="text-xl text-acme-dark font-black">"Do you watch cartoons?"</p>
+                        <p class="text-sm text-slate-500 font-bold mt-3 border-t-2 border-dashed border-slate-200 pt-3">(Yes, I do. / No, I don't.)</p>
+                    </div>
+                    <div class="acme-panel p-6 hover:-translate-y-1 transition-transform">
+                        <h3 class="text-2xl font-comic text-acme-blue mb-2 tracking-wider">Question 2</h3>
+                        <p class="text-xl text-acme-dark font-black">"Who is your favorite cartoon character?"</p>
+                        <p class="text-sm text-slate-500 font-bold mt-3 border-t-2 border-dashed border-slate-200 pt-3">(My favorite character is...)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 4: WARM-UP 2 (SLAPSTICK) -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Basic Conversation</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Slapstick Comedy</h1>
+                
+                <div class="acme-panel p-6 md:p-8 max-w-3xl w-full text-center">
+                    <span class="text-5xl mb-4 block">🤕</span>
+                    <p class="text-2xl font-black text-acme-dark mb-6">
+                        "In cartoons, the characters are always falling or getting hurt. Do you think this is funny?"
+                    </p>
+                    <div class="bg-acme-yellow/30 p-3 rounded-xl border-2 border-dashed border-acme-dark text-base text-acme-red font-black">
+                        > Encourage simple answers: "Yes, it is funny." / "No, it is bad."
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 5: CHARACTER 1 (COYOTE) -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Character File</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">The Coyote</h1>
+                
+                <div class="w-full max-w-3xl acme-panel p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center transform -rotate-1">
+                    <div class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-acme-dark bg-slate-200 flex items-center justify-center text-5xl shadow-[4px_4px_0px_#0f172a] shrink-0 overflow-hidden">
+                        <img src="https://ingresso-a.akamaihd.net/b2b/production/uploads/article/image/3997/860324c3059c76cad58f961050c004c1.jpg" alt="Wile E. Coyote" class="w-full h-full object-cover">
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-3xl font-comic text-acme-red mb-3 tracking-wider">Wile E. Coyote</h3>
+                        <p class="text-lg font-black text-acme-dark mb-1">• He is an animal.</p>
+                        <p class="text-lg font-black text-acme-dark mb-1">• He is very hungry.</p>
+                        <p class="text-lg font-black text-acme-dark mb-1">• He is <span class="text-acme-red underline">not</span> fast.</p>
+                        <p class="text-lg font-black text-acme-dark">• He is always angry.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 6: CHARACTER 2 (ROAD RUNNER) -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Character File</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">The Road Runner</h1>
+                
+                <div class="w-full max-w-3xl acme-panel p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center transform rotate-1">
+                    <div class="text-left md:text-right order-2 md:order-1">
+                        <h3 class="text-3xl font-comic text-acme-blue mb-3 tracking-wider">Road Runner</h3>
+                        <p class="text-lg font-black text-acme-dark mb-1">• He is a bird.</p>
+                        <p class="text-lg font-black text-acme-dark mb-1">• He is very, very fast.</p>
+                        <p class="text-lg font-black text-acme-dark mb-1">• He is happy.</p>
+                        <p class="text-lg font-black text-acme-dark">"Beep, Beep!"</p>
+                    </div>
+                    <div class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-acme-dark bg-white flex items-center justify-center text-5xl shadow-[4px_4px_0px_#0f172a] shrink-0 order-1 md:order-2 overflow-hidden">
+                        <img src="https://static.wikia.nocookie.net/looneytunes/images/4/43/Road-runner.png/revision/latest/thumbnail/width/360/height/360?cb=20230106103454" alt="Road Runner" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- ACT II: VOCABULARY & GRAMMAR 1                 -->
+        <!-- ============================================== -->
+
+        <!-- PAGE 7: ACME CATALOG (NOUNS) -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Vocabulary: Nouns</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">ACME Catalog</h1>
+                <p class="text-lg mb-6 text-acme-dark font-black bg-white px-3 py-1 border-2 border-acme-dark rounded-lg shadow-[2px_2px_0px_#0f172a]">Click the crates to reveal the objects.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl w-full">
+                    <div class="acme-panel p-4 md:p-6 interactive-card text-center bg-[#fca5a5]" onclick="this.classList.toggle('open')">
+                        <span class="text-4xl md:text-5xl block mb-1">📦</span>
+                        <div class="reveal-content"><p class="text-xl md:text-2xl font-comic tracking-wider mt-2 bg-white p-1 border-2 border-acme-dark rounded-lg">BOX</p></div>
+                    </div>
+                    <div class="acme-panel p-4 md:p-6 interactive-card text-center bg-[#fca5a5]" onclick="this.classList.toggle('open')">
+                        <span class="text-4xl md:text-5xl block mb-1">🎹</span>
+                        <div class="reveal-content"><p class="text-xl md:text-2xl font-comic tracking-wider mt-2 bg-white p-1 border-2 border-acme-dark rounded-lg">PIANO</p></div>
+                    </div>
+                    <div class="acme-panel p-4 md:p-6 interactive-card text-center bg-[#fca5a5]" onclick="this.classList.toggle('open')">
+                        <span class="text-4xl md:text-5xl block mb-1">🚀</span>
+                        <div class="reveal-content"><p class="text-xl md:text-2xl font-comic tracking-wider mt-2 bg-white p-1 border-2 border-acme-dark rounded-lg">ROCKET</p></div>
+                    </div>
+                    <div class="acme-panel p-4 md:p-6 interactive-card text-center bg-[#fca5a5]" onclick="this.classList.toggle('open')">
+                        <span class="text-4xl md:text-5xl block mb-1">🎨</span>
+                        <div class="reveal-content"><p class="text-xl md:text-2xl font-comic tracking-wider mt-2 bg-white p-1 border-2 border-acme-dark rounded-lg">PAINT</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 8: ACME CATALOG (ADJECTIVES) -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Vocabulary: Adjectives</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">How does he feel?</h1>
+                <p class="text-lg mb-6 text-acme-dark font-black bg-white px-3 py-1 border-2 border-acme-dark rounded-lg shadow-[2px_2px_0px_#0f172a]">Click the cards to reveal the adjectives.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl w-full">
+                    <div class="acme-panel p-4 md:p-6 interactive-card text-center" onclick="this.classList.toggle('open')">
+                        <span class="text-4xl md:text-5xl block mb-1">😡</span>
+                        <div class="reveal-content"><p class="text-xl md:text-2xl font-comic text-acme-red tracking-wider mt-2 border-t-2 border-dashed border-gray-200 pt-2">ANGRY</p></div>
+                    </div>
+                    <div class="acme-panel p-4 md:p-6 interactive-card text-center" onclick="this.classList.toggle('open')">
+                        <span class="text-4xl md:text-5xl block mb-1">🤕</span>
+                        <div class="reveal-content"><p class="text-xl md:text-2xl font-comic text-acme-blue tracking-wider mt-2 border-t-2 border-dashed border-gray-200 pt-2">HURT</p></div>
+                    </div>
+                    <div class="acme-panel p-4 md:p-6 interactive-card text-center" onclick="this.classList.toggle('open')">
+                        <span class="text-4xl md:text-5xl block mb-1">⚡</span>
+                        <div class="reveal-content"><p class="text-xl md:text-2xl font-comic text-acme-green tracking-wider mt-2 border-t-2 border-dashed border-gray-200 pt-2">FAST</p></div>
+                    </div>
+                    <div class="acme-panel p-4 md:p-6 interactive-card text-center" onclick="this.classList.toggle('open')">
+                        <span class="text-4xl md:text-5xl block mb-1">🐌</span>
+                        <div class="reveal-content"><p class="text-xl md:text-2xl font-comic text-slate-500 tracking-wider mt-2 border-t-2 border-dashed border-gray-200 pt-2">SLOW</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 9: GRAMMAR 1 (VERB TO BE) -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Grammar 01</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">The Verb "To Be"</h1>
+                
+                <p class="text-lg mb-6 text-acme-dark font-black">We use the verb "To Be" to describe people, things, and feelings.</p>
+
+                <div class="acme-panel p-6 md:p-8 w-full max-w-3xl text-left bg-white">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-comic text-2xl text-acme-green tracking-wider mb-3 border-b-2 border-acme-dark pb-1">✅ Affirmative</h3>
+                            <p class="text-xl font-black mb-1">I <span class="text-acme-blue">am</span> a lawyer.</p>
+                            <p class="text-xl font-black mb-1">He <span class="text-acme-blue">is</span> angry.</p>
+                            <p class="text-xl font-black">The boxes <span class="text-acme-blue">are</span> heavy.</p>
+                        </div>
+                        <div>
+                            <h3 class="font-comic text-2xl text-acme-red tracking-wider mb-3 border-b-2 border-acme-dark pb-1">❌ Negative</h3>
+                            <p class="text-xl font-black mb-1">I <span class="text-acme-red">am not</span> a bird.</p>
+                            <p class="text-xl font-black mb-1">He <span class="text-acme-red">is not</span> fast.</p>
+                            <p class="text-xl font-black">They <span class="text-acme-red">are not</span> happy.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 10: MINIGAME 1 (VERB TO BE) -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Interactive Challenge</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">To Be or Not To Be?</h1>
+                
+                <p class="text-lg mb-6 text-acme-dark font-black">Ask the student to complete the sentence.</p>
+
+                <div class="acme-panel p-6 md:p-8 w-full max-w-2xl text-center">
+                    <p class="text-2xl md:text-3xl font-black text-acme-dark mb-6 border-2 border-acme-dark p-4 rounded-xl bg-slate-100 shadow-inner">
+                        The Coyote <span id="blank-1" class="inline-block w-16 md:w-20 border-b-4 border-acme-dark text-acme-red">&nbsp;&nbsp;&nbsp;</span> angry.
+                    </p>
+                    
+                    <div class="flex flex-wrap justify-center gap-3 md:gap-4">
+                        <button class="acme-btn acme-btn-yellow text-xl md:text-2xl px-5 md:px-6 py-2 md:py-3" onclick="checkToBebtn(this, false)">AM</button>
+                        <button class="acme-btn acme-btn-yellow text-xl md:text-2xl px-5 md:px-6 py-2 md:py-3" onclick="checkToBebtn(this, true)">IS</button>
+                        <button class="acme-btn acme-btn-yellow text-xl md:text-2xl px-5 md:px-6 py-2 md:py-3" onclick="checkToBebtn(this, false)">ARE</button>
+                    </div>
+                    <div id="tobe-feedback" class="mt-6 font-comic text-2xl md:text-3xl hidden uppercase tracking-wider"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 11: ACME TRANSLATOR (UNSCRAMBLE) -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Sentence Challenge</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Order the words</h1>
+                
+                <p class="text-lg mb-6 text-acme-dark font-black">Put the words in the correct order to make a sentence.</p>
+
+                <div class="space-y-6 w-full max-w-3xl">
+                    <div class="acme-panel p-6 border-l-8 border-l-acme-blue">
+                        <p class="font-black text-lg md:text-xl mb-3 bg-slate-100 p-3 border-2 border-acme-dark rounded-lg">fast / is / bird / the</p>
+                        <button class="acme-btn px-4 py-1.5 text-xs" onclick="this.nextElementSibling.classList.toggle('hidden')">REVEAL ANSWER</button>
+                        <p class="hidden text-xl md:text-2xl font-comic text-acme-blue mt-3 tracking-wider">> "The bird is fast."</p>
+                    </div>
+                    <div class="acme-panel p-6 border-l-8 border-l-acme-red">
+                        <p class="font-black text-lg md:text-xl mb-3 bg-slate-100 p-3 border-2 border-acme-dark rounded-lg">not / Coyote / is / happy / the</p>
+                        <button class="acme-btn px-4 py-1.5 text-xs" onclick="this.nextElementSibling.classList.toggle('hidden')">REVEAL ANSWER</button>
+                        <p class="hidden text-xl md:text-2xl font-comic text-acme-red mt-3 tracking-wider">> "The Coyote is not happy."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- ACT III: THE SCREENING ROOM                    -->
+        <!-- ============================================== -->
+
+        <!-- PAGE 12: SCREENING PREP -->
+        <section class="page text-center">
+            <div class="page-content items-center">
+                <div class="w-24 h-24 rounded-full bg-white flex items-center justify-center mb-6 border-4 border-acme-dark shadow-[4px_4px_0px_#0f172a]">
+                    <span class="text-5xl animate-bounce">🎬</span>
+                </div>
+                <h2 class="font-base font-black tracking-widest mb-3 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Video Preparation</h2>
+                <h1 class="text-4xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Screening Prep</h1>
+                <div class="acme-panel p-6 md:p-8 max-w-2xl text-lg md:text-xl font-black text-acme-dark text-left">
+                    <p class="mb-4">We are going to watch a trailer for a movie.</p>
+                    <p class="mb-4 border-b-2 border-dashed border-slate-300 pb-4">Student Focus: <span class="text-acme-red">Look at the video carefully.</span></p>
+                    <p class="italic text-base md:text-lg text-slate-500 bg-slate-100 p-3 rounded-lg border-2 border-acme-dark">"What colors do you see? Who is in the video? Are they happy or angry?"</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 13: THE TRAILER -->
+        <section class="page">
+            <div class="page-content h-full w-full max-w-5xl">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Screening Room</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">The Courtroom</h1>
+                
+                <div class="w-full aspect-video comic-frame relative z-20">
+                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/H-43VeYGiPM?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 14: OBSERVATION CHECK 1 -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Visual Check 1</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Observation Check</h1>
+                
+                <p class="text-xl mb-6 text-acme-dark font-black">Ask these simple questions to the student.</p>
+
+                <div class="space-y-4 w-full max-w-3xl">
+                    <div class="acme-panel p-6 interactive-card text-left" onclick="this.classList.toggle('open')">
+                        <p class="font-black text-lg md:text-xl text-acme-dark">Q: Is the Coyote happy?</p>
+                        <div class="reveal-content text-acme-red font-comic text-xl md:text-2xl mt-3 tracking-wider">
+                            > "No, he is not. He is angry/hurt."
+                        </div>
+                    </div>
+                    <div class="acme-panel p-6 interactive-card text-left" onclick="this.classList.toggle('open')">
+                        <p class="font-black text-lg md:text-xl text-acme-dark">Q: Is the bird slow?</p>
+                        <div class="reveal-content text-acme-blue font-comic text-xl md:text-2xl mt-3 tracking-wider">
+                            > "No, it is not. It is fast."
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 15: OBSERVATION CHECK 2 -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Visual Check 2</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Observation Check</h1>
+                
+                <div class="space-y-4 w-full max-w-3xl">
+                    <div class="acme-panel p-6 interactive-card text-left" onclick="this.classList.toggle('open')">
+                        <p class="font-black text-lg md:text-xl text-acme-dark">Q: Is the Coyote wearing a suit in the court?</p>
+                        <div class="reveal-content text-acme-green font-comic text-xl md:text-2xl mt-3 tracking-wider">
+                            > "Yes, he is."
+                        </div>
+                    </div>
+                    <div class="acme-panel p-6 interactive-card text-left" onclick="this.classList.toggle('open')">
+                        <p class="font-black text-lg md:text-xl text-acme-dark">Q: Is the ACME box big or small?</p>
+                        <div class="reveal-content text-acme-blue font-comic text-xl md:text-2xl mt-3 tracking-wider">
+                            > "It is big."
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 16: COURT TRANSCRIPT -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Document Review</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Court Transcript</h1>
+                
+                <p class="text-lg mb-6 text-acme-dark font-black bg-white px-3 py-1.5 border-2 border-acme-dark rounded-lg shadow-[2px_2px_0px_#0f172a]">Read the text. Click the <span class="text-acme-blue">blue words</span> for the dictionary.</p>
+
+                <div class="w-full max-w-3xl text-left bg-white border-4 border-acme-dark p-6 md:p-8 rounded-xl shadow-[4px_4px_0px_#0f172a] relative overflow-hidden">
+                    <!-- ACME Watermark -->
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl md:text-7xl text-slate-200 opacity-40 font-comic pointer-events-none select-none rotate-12 border-4 border-slate-200 p-2 rounded-lg text-center leading-none">
+                        CONFIDENTIAL
+                    </div>
+                    
+                    <div class="space-y-6 relative z-10 font-base text-base md:text-xl font-black text-acme-dark">
+                        <!-- Line 1 -->
+                        <div>
+                            <span class="text-white font-bold text-xs tracking-widest bg-acme-blue px-2 py-0.5 rounded border-2 border-acme-dark">[ LAWYER ]</span>
+                            <p class="mt-2 leading-relaxed bg-slate-50 p-3 rounded-lg border-2 border-slate-200">
+                                "Have you been horribly <span class="text-acme-blue border-b-2 border-acme-blue cursor-pointer hover:bg-blue-100 px-1" onclick="openBatComputer('injured')">injured</span> by ACME? It's not your <span class="text-acme-blue border-b-2 border-acme-blue cursor-pointer hover:bg-blue-100 px-1" onclick="openBatComputer('fault')">fault</span>."
+                            </p>
+                        </div>
+                        
+                        <!-- Line 2 -->
+                        <div class="pt-1">
+                            <span class="text-white font-bold text-xs tracking-widest bg-acme-red px-2 py-0.5 rounded border-2 border-acme-dark">[ ACME BOSS ]</span>
+                            <p class="mt-2 leading-relaxed bg-slate-50 p-3 rounded-lg border-2 border-slate-200">
+                                "Wile E. Coyote is <span class="text-acme-blue border-b-2 border-acme-blue cursor-pointer hover:bg-blue-100 px-1" onclick="openBatComputer('reckless')">reckless</span>."
+                            </p>
+                        </div>
+
+                        <!-- Line 3 -->
+                        <div class="pt-1">
+                            <span class="text-white font-bold text-xs tracking-widest bg-acme-blue px-2 py-0.5 rounded border-2 border-acme-dark">[ LAWYER ]</span>
+                            <p class="mt-2 leading-relaxed bg-slate-50 p-3 rounded-lg border-2 border-slate-200">
+                                "This is your <span class="text-acme-blue border-b-2 border-acme-blue cursor-pointer hover:bg-blue-100 px-1" onclick="openBatComputer('opportunity')">opportunity</span> to show people."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 17: SECOND SCREENING -->
+        <section class="page">
+            <div class="page-content h-full w-full max-w-5xl">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Second Screening</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Watch Again</h1>
+                
+                <p class="text-lg mb-4 text-acme-dark font-black bg-white px-3 py-1.5 border-2 border-acme-dark rounded-lg shadow-[2px_2px_0px_#0f172a]">Now that you know the words, watch the video one more time!</p>
+
+                <div class="w-full aspect-video comic-frame relative z-20">
+                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/H-43VeYGiPM?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- ACT IV: GRAMMAR 2 & ACTIONS                    -->
+        <!-- ============================================== -->
+
+        <!-- PAGE 18: GRAMMAR 2 (PRESENT CONTINUOUS) -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Grammar 02</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Present Continuous</h1>
+                
+                <p class="text-xl mb-6 text-acme-dark font-black bg-white px-4 py-2 border-2 border-acme-dark rounded-xl shadow-[2px_2px_0px_#0f172a]">What is happening right now?</p>
+
+                <div class="acme-panel p-6 md:p-8 w-full max-w-3xl text-center">
+                    <h3 class="font-black text-lg md:text-xl text-slate-500 mb-4 bg-slate-100 p-3 border-2 border-acme-dark rounded-xl inline-block">Verb To Be + Verb-ING</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <div class="border-4 border-acme-blue p-4 rounded-xl text-left bg-blue-50 transform -rotate-1">
+                            <p class="text-xl md:text-2xl font-black text-acme-dark mb-1">The bird <span class="text-acme-blue">is</span> runn<span class="text-acme-blue">ing</span>.</p>
+                            <span class="text-3xl">🏃‍♂️ 🐦</span>
+                        </div>
+                        <div class="border-4 border-acme-red p-4 rounded-xl text-left bg-red-50 transform rotate-1">
+                            <p class="text-xl md:text-2xl font-black text-acme-dark mb-1">The piano <span class="text-acme-red">is</span> fall<span class="text-acme-red">ing</span>.</p>
+                            <span class="text-3xl">🎹 ⬇️</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 19: VISUAL DEDUCTION -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Visual Deduction</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">What is he doing?</h1>
+                
+                <p class="text-xl mb-6 text-acme-dark font-black">Choose the correct action.</p>
+
+                <div class="acme-panel p-6 md:p-8 max-w-2xl w-full text-center">
+                    <span class="text-5xl md:text-7xl mb-6 block drop-shadow-md">🗣️ 👨‍⚖️</span>
+                    <div class="flex flex-col gap-3">
+                        <button class="acme-btn acme-btn-yellow text-lg md:text-xl px-4 md:px-6 py-2 md:py-3 text-left" onclick="checkToBebtn(this, false)">A) He is driving a car.</button>
+                        <button class="acme-btn acme-btn-yellow text-lg md:text-xl px-4 md:px-6 py-2 md:py-3 text-left" onclick="checkToBebtn(this, true)">B) He is speaking to the judge.</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 20: THE EVIDENCE BOARD -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Interactive Challenge</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">The Evidence Board</h1>
+                
+                <p class="text-lg mb-6 text-acme-dark font-black">Click the clues to pin the correct sentence.</p>
+
+                <div class="w-full max-w-3xl p-4 md:p-6 rounded-2xl shadow-xl relative border-8 border-[#8b5a2b] bg-[#d2a679]">
+                    
+                    <div class="space-y-6 relative z-10 flex flex-col items-center">
+                        <div class="bg-yellow-100 text-black p-4 shadow-md rotate-2 w-full max-w-lg cursor-pointer border-2 border-acme-dark hover:scale-105 transition-transform relative" onclick="this.querySelector('.ans').classList.toggle('hidden')">
+                            <!-- Pin -->
+                            <div class="absolute -top-3 left-1/2 w-4 h-4 bg-red-600 rounded-full shadow-sm border-2 border-black -translate-x-1/2"></div>
+                            
+                            <p class="font-black text-base md:text-lg mb-1 border-b-2 border-gray-400 pb-1">Clue 1: A big rock in the sky.</p>
+                            <p class="text-lg md:text-xl font-black mt-2">The rock <span class="bg-yellow-300 px-1">(is falling / are falling)</span>.</p>
+                            <div class="ans hidden mt-2 pt-2 border-t-2 border-gray-400 text-acme-red font-comic tracking-wider text-2xl md:text-3xl">> IS FALLING</div>
+                        </div>
+
+                        <div class="bg-blue-50 text-black p-4 shadow-md -rotate-2 w-full max-w-lg cursor-pointer border-2 border-acme-dark hover:scale-105 transition-transform relative" onclick="this.querySelector('.ans').classList.toggle('hidden')">
+                            <!-- Pin -->
+                            <div class="absolute -top-3 left-1/2 w-4 h-4 bg-blue-600 rounded-full shadow-sm border-2 border-black -translate-x-1/2"></div>
+
+                            <p class="font-black text-base md:text-lg mb-1 border-b-2 border-gray-400 pb-1">Clue 2: The Coyote has an ACME rocket.</p>
+                            <p class="text-lg md:text-xl font-black mt-2">He <span class="bg-yellow-300 px-1">(is flying / am flying)</span>.</p>
+                            <div class="ans hidden mt-2 pt-2 border-t-2 border-gray-400 text-acme-blue font-comic tracking-wider text-2xl md:text-3xl">> IS FLYING</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 21: THE WOW MECHANIC (UV FLASHLIGHT) -->
+        <section class="page">
+            <div class="page-content flex flex-col justify-center h-full w-full">
+                <div class="text-center mb-6">
+                    <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Inspection Tool</h2>
+                    <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider text-white drop-shadow-[4px_4px_0px_#0f172a]">The UV Flashlight</h1>
+                    <p class="text-lg mt-3 text-acme-dark font-black bg-white px-3 py-1.5 border-2 border-acme-dark rounded-lg inline-block shadow-[2px_2px_0px_#0f172a]">Ask the student to move the mouse inside the box to reveal the secret message.</p>
+                </div>
+
+                <div id="uv-container" class="w-full h-64 max-w-3xl mx-auto shadow-[6px_6px_0px_#0f172a] relative z-20 acme-panel bg-black overflow-hidden cursor-crosshair">
+                    <div id="uv-hidden-text">
+                        <p class="text-acme-yellow">ACME IS BAD.</p>
+                        <p class="text-white mt-3">THE BIRD IS FAST.</p>
+                    </div>
+                    <div id="uv-overlay" class="absolute inset-0 bg-[#0f172a] transition-opacity duration-300">
+                        <div class="scan-hint">INSPECTION AREA</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- ACT V: ROLEPLAY & CONCLUSION                 -->
+        <!-- ============================================== -->
+
+        <!-- PAGE 22: ROLEPLAY 1 -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Speaking Practice 1</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">The Doctor</h1>
+                
+                <div class="flex flex-col md:flex-row gap-6 w-full max-w-4xl">
+                    <!-- Teacher -->
+                    <div class="flex-1 acme-panel p-6 md:p-8 flex flex-col justify-center text-center">
+                        <h3 class="text-2xl md:text-3xl font-comic mb-2 text-acme-blue tracking-wider">Teacher</h3>
+                        <p class="text-xs font-bold text-slate-500 mb-6 uppercase tracking-widest">Plays: The Doctor</p>
+                        <p class="text-lg md:text-xl font-black mb-4 text-acme-dark">"Hello, Coyote. Are you okay?"</p>
+                        <p class="text-lg md:text-xl font-black text-acme-dark">"What is happening?"</p>
+                    </div>
+                    
+                    <!-- Student -->
+                    <div class="flex-1 acme-panel p-6 md:p-8 flex flex-col justify-center text-center bg-slate-100">
+                        <h3 class="text-2xl md:text-3xl font-comic mb-2 text-acme-red tracking-wider">Student</h3>
+                        <p class="text-xs font-bold text-slate-500 mb-6 uppercase tracking-widest">Plays: The Coyote (Holding a sign)</p>
+                        <div class="bg-white p-4 border-2 border-acme-dark transform rotate-2">
+                            <p class="text-lg md:text-xl font-black mb-4 text-acme-dark">"No, I am hurt."</p>
+                            <p class="text-lg md:text-xl font-black text-acme-dark">"The piano is falling."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 23: ROLEPLAY 2 -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Speaking Practice 2</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">The Court</h1>
+                
+                <div class="flex flex-col md:flex-row gap-6 w-full max-w-4xl">
+                    <!-- Teacher -->
+                    <div class="flex-1 acme-panel p-6 md:p-8 flex flex-col justify-center text-center">
+                        <h3 class="text-2xl md:text-3xl font-comic mb-2 text-acme-dark tracking-wider">Teacher</h3>
+                        <p class="text-xs font-bold text-slate-500 mb-6 uppercase tracking-widest">Plays: The Judge</p>
+                        <p class="text-lg md:text-xl font-black mb-4 text-acme-dark">"Is ACME a good company?"</p>
+                    </div>
+                    
+                    <!-- Student -->
+                    <div class="flex-1 acme-panel p-6 md:p-8 flex flex-col justify-center text-center bg-slate-100">
+                        <h3 class="text-2xl md:text-3xl font-comic mb-2 text-acme-blue tracking-wider">Student</h3>
+                        <p class="text-xs font-bold text-slate-500 mb-6 uppercase tracking-widest">Plays: The Lawyer</p>
+                        <div class="bg-white p-4 border-2 border-acme-dark transform -rotate-2">
+                            <p class="text-lg md:text-xl font-black mb-4 text-acme-dark">"No, they are bad."</p>
+                            <p class="text-lg md:text-xl font-black text-acme-dark">"Look at my client!"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 24: DISCUSSION -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">Conversation</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Bad Products</h1>
+                
+                <div class="acme-panel p-6 md:p-10 max-w-3xl w-full text-center">
+                    <span class="text-5xl md:text-6xl mb-4 block">📱 🚗</span>
+                    <p class="text-xl md:text-2xl font-black text-acme-dark mb-6">
+                        "ACME products are always bad. Do you have a product that is bad? A bad phone? A bad car?"
+                    </p>
+                    <p class="text-base md:text-lg text-slate-500 font-bold border-t-2 border-dashed border-slate-200 pt-3">
+                        (Help the student form simple sentences: "My phone is slow.", "My car is old.")
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 25: HOMEWORK & END -->
+        <section class="page">
+            <div class="page-content">
+                <h2 class="font-base font-black tracking-widest mb-2 uppercase text-xs text-acme-blue bg-white px-2 py-1 border-2 border-acme-dark rounded inline-block">End of Class</h2>
+                <h1 class="text-3xl md:text-5xl font-comic uppercase tracking-wider mb-6 text-white drop-shadow-[4px_4px_0px_#0f172a]">Case Closed</h1>
+                
+                <div class="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Homework -->
+                    <div class="acme-panel p-5 md:p-6 bg-acme-blue text-white border-2 border-acme-dark">
+                        <h3 class="text-xl md:text-2xl font-comic tracking-wider mb-3 border-b-2 border-white/20 pb-1">Homework</h3>
+                        <p class="text-base md:text-lg font-bold mb-3">Write 5 simple sentences about the Coyote using the Verb To Be and Present Continuous.</p>
+                        <div class="bg-black/20 p-3 rounded-lg text-sm md:text-base font-bold">
+                            <p>Ex 1: He is brown.</p>
+                            <p>Ex 2: He is running.</p>
+                        </div>
+                    </div>
+
+                    <!-- Rating -->
+                    <div class="acme-panel p-5 md:p-6 text-center flex flex-col justify-center border-2 border-acme-dark">
+                        <p class="text-lg md:text-xl font-black text-acme-dark mb-4">Rate this trailer:</p>
+                        <div class="flex justify-center gap-1.5 mb-4">
+                            <button onclick="rate(1)" class="anvil-icon text-3xl md:text-5xl grayscale opacity-30 hover:scale-110 transition-transform">⚖️</button>
+                            <button onclick="rate(2)" class="anvil-icon text-3xl md:text-5xl grayscale opacity-30 hover:scale-110 transition-transform">⚖️</button>
+                            <button onclick="rate(3)" class="anvil-icon text-3xl md:text-5xl grayscale opacity-30 hover:scale-110 transition-transform">⚖️</button>
+                            <button onclick="rate(4)" class="anvil-icon text-3xl md:text-5xl grayscale opacity-30 hover:scale-110 transition-transform">⚖️</button>
+                            <button onclick="rate(5)" class="anvil-icon text-3xl md:text-5xl grayscale opacity-30 hover:scale-110 transition-transform">⚖️</button>
+                        </div>
+                        <div id="rat-hub" class="hidden font-black text-lg md:text-xl text-acme-red uppercase tracking-widest font-comic bg-slate-100 p-1.5 rounded-lg border-2 border-acme-dark">> <span id="star-c" class="mx-1"></span> Anvils.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- BOTTOM BAR (Pagination) -->
+    <footer class="fixed bottom-0 left-0 w-full h-16 md:h-20 bg-white border-t-4 border-acme-dark z-40 flex items-center justify-between px-4 md:px-6 shadow-[0_-4px_0_#0f172a]">
+        <div class="flex-1 flex justify-start">
+            <button onclick="prevPage()" class="acme-btn acme-btn-yellow text-[10px] md:text-sm px-4 md:px-6 py-2" id="btn-prev">
+                << Prev
+            </button>
+        </div>
+        
+        <div class="flex-1 flex flex-col items-center justify-center">
+            <div class="font-base font-black text-lg md:text-2xl tracking-widest text-acme-dark">
+                PAGE <span id="page-num" class="text-acme-red">01</span> / <span id="total-pages">25</span>
+            </div>
+            <div class="font-base font-bold text-[8px] md:text-[10px] tracking-widest text-slate-400 mt-1 uppercase hidden sm:block">
+                POWERED BY WOLFLIX
+            </div>
+        </div>
+
+        <div class="flex-1 flex justify-end">
+            <button onclick="nextPage()" class="acme-btn acme-btn-yellow text-[10px] md:text-sm px-4 md:px-6 py-2" id="btn-next">
+                Next >>
+            </button>
+        </div>
+    </footer>
+
+    <!-- SLIDE-OUT NOTEPAD -->
+    <aside id="notepad-panel" class="fixed top-0 right-0 w-full max-w-md h-full bg-[#fefce8] border-l-8 border-acme-dark z-50 translate-x-full flex flex-col shadow-[-10px_0px_0px_rgba(0,0,0,0.2)] transition-transform duration-500">
+        <div class="p-6 border-b-4 border-acme-dark bg-acme-yellow flex justify-between items-center">
+            <h2 class="font-comic font-normal tracking-widest text-3xl text-acme-dark flex items-center gap-2">
+                Teacher Notes
+            </h2>
+            <button onclick="toggleNotepad()" class="text-acme-dark hover:text-acme-red font-black text-3xl px-2 transition-colors">✕</button>
+        </div>
+        <textarea class="flex-1 w-full bg-transparent p-8 font-base font-bold text-acme-dark text-xl md:text-2xl leading-relaxed outline-none resize-none placeholder:text-slate-400" placeholder="Type the student's notes here..."></textarea>
+    </aside>
+
+    <!-- SLIDE-OUT DICTIONARY (ACME CATALOG) -->
+    <aside id="bat-computer" class="fixed top-0 right-0 w-full max-w-md h-full bg-white border-l-8 border-acme-dark z-50 translate-x-full flex flex-col shadow-[-10px_0px_0px_rgba(0,0,0,0.2)] transition-transform duration-500">
+        <div class="p-6 border-b-4 border-acme-dark bg-acme-blue flex justify-between items-center">
+            <h2 class="font-comic font-normal tracking-widest text-3xl text-white flex items-center gap-2">
+                ACME Catalog
+            </h2>
+            <button onclick="closeBatComputer()" class="text-white hover:text-acme-dark font-black text-3xl px-2 transition-colors">✕</button>
+        </div>
+        <div class="flex-1 w-full p-8 overflow-y-auto" id="bat-content">
+            <p class="text-slate-400 text-center font-bold text-xl mt-10">Waiting for query...</p>
+        </div>
+    </aside>
+
+    <!-- JS LOGIC -->
+    <script>
+        // --- 1. Pagination Logic ---
+        let currentPage = 0;
+        const pages = document.querySelectorAll('.page');
+        const totalPages = pages.length;
+
+        function updatePagination() {
+            document.getElementById('page-num').innerText = (currentPage + 1).toString().padStart(2, '0');
+            document.getElementById('btn-prev').disabled = currentPage === 0;
+            document.getElementById('btn-next').disabled = currentPage === totalPages - 1;
+            
+            pages[currentPage].scrollTo(0,0);
+        }
+
+        function goToPage(index) {
+            if(index < 0 || index >= totalPages) return;
+            pages[currentPage].classList.remove('active');
+            currentPage = index;
+            pages[currentPage].classList.add('active');
+            updatePagination();
+        }
+
+        function nextPage() { goToPage(currentPage + 1); }
+        function prevPage() { goToPage(currentPage - 1); }
+
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowRight') nextPage();
+            if(e.key === 'ArrowLeft') prevPage();
+        });
+
+        // --- 2. Fullscreen & Panels ---
+        function toggleFullscreen() {
+            const doc = window.document;
+            const docEl = doc.documentElement;
+            const req = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+            
+            try {
+                if (!doc.fullscreenElement) {
+                    const promise = req ? req.call(docEl) : null;
+                    if (promise && promise.catch) {
+                        promise.catch(err => console.warn("Fullscreen blocked.", err));
+                    }
+                } else {
+                    const promise = exit ? exit.call(doc) : null;
+                    if (promise && promise.catch) {
+                        promise.catch(err => console.warn("Error exiting fullscreen.", err));
+                    }
+                }
+            } catch (err) {
+                console.warn("Fullscreen error", err);
+            }
+        }
+
+        function toggleNotepad() {
+            document.getElementById('notepad-panel').classList.toggle('translate-x-full');
+            document.getElementById('bat-computer').classList.add('translate-x-full');
+        }
+
+        // --- Praise System ---
+        function triggerPraise(textHTML) {
+            const popup = document.getElementById('praise-popup');
+            const textContainer = document.getElementById('praise-text');
+            
+            textContainer.innerHTML = textHTML;
+            popup.classList.remove('hidden');
+            popup.classList.add('praise-anim');
+            
+            setTimeout(() => {
+                popup.classList.remove('praise-anim');
+                popup.classList.add('hidden');
+            }, 2000);
+        }
+
+        // --- 3. ACME Database (Dictionary) ---
+        const batDB = {
+            'coyote': { def: 'A wild animal like a dog that lives in North America.', ex: 'The Coyote is very hungry.' },
+            'reckless': { def: 'Doing dangerous things without thinking.', ex: 'He is reckless. He uses dangerous rockets.' },
+            'fault': { def: 'A mistake or responsibility for something bad.', ex: 'It is not your fault.' },
+            'lawyer': { def: 'A person who speaks for people in court.', ex: 'The lawyer is defending the Coyote.' },
+            'injured': { def: 'Hurt physically.', ex: 'The Coyote is injured by the ACME box.' },
+            'opportunity': { def: 'A good chance to do something.', ex: 'This is a good opportunity to win the case.' }
+        };
+
+        function openBatComputer(word) {
+            document.getElementById('notepad-panel').classList.add('translate-x-full');
+            const panel = document.getElementById('bat-computer');
+            const content = document.getElementById('bat-content');
+            const data = batDB[word.toLowerCase()];
+            
+            panel.classList.remove('translate-x-full');
+            
+            if(data) {
+                content.innerHTML = `
+                    <p class="text-acme-blue font-black mb-2 uppercase tracking-widest">> ITEM FOUND</p>
+                    <h3 class="text-4xl md:text-5xl font-comic text-acme-dark uppercase mb-6 drop-shadow-[2px_2px_0px_#cbd5e1]">${word}</h3>
+                    
+                    <p class="text-slate-500 font-bold mb-1 uppercase tracking-widest">> DEFINITION:</p>
+                    <p class="text-xl md:text-2xl text-acme-dark font-black mb-8 leading-relaxed">${data.def}</p>
+                    
+                    <p class="text-slate-500 font-bold mb-1 uppercase tracking-widest">> EXAMPLE:</p>
+                    <p class="text-xl md:text-2xl text-white bg-acme-blue font-bold p-6 rounded-xl border-4 border-acme-dark shadow-[4px_4px_0px_#0f172a]">${data.ex}</p>
+                `;
+            } else {
+                content.innerHTML = `<p class="text-acme-red font-black text-2xl border-4 border-acme-red p-6 rounded-xl text-center">> ERROR: WORD NOT IN CATALOG.</p>`;
+            }
+        }
+
+        function closeBatComputer() {
+            document.getElementById('bat-computer').classList.add('translate-x-full');
+        }
+
+        // --- Minigame: To Be ---
+        function checkToBebtn(btn, isCorrect) {
+            const container = btn.parentElement.parentElement;
+            container.querySelectorAll('button').forEach(b => b.classList.remove('border-green-500', 'border-red-500', 'bg-green-100', 'bg-red-100'));
+            
+            const fb = container.querySelector('div[id$="-feedback"]') || container.querySelector('div[id^="tobe-feedback"]');
+            
+            if(isCorrect) {
+                btn.classList.add('border-green-500', 'bg-green-100');
+                if(fb) {
+                    fb.classList.remove('hidden', 'text-acme-red');
+                    fb.classList.add('text-acme-green');
+                    fb.innerText = "> CORRECT!";
+                }
+                triggerPraise("WELL DONE! 🎯");
+            } else {
+                btn.classList.add('border-red-500', 'bg-red-100');
+                if(fb) {
+                    fb.classList.remove('hidden', 'text-acme-green');
+                    fb.classList.add('text-acme-red');
+                    fb.innerText = "> WRONG. TRY AGAIN.";
+                }
+            }
+        }
+
+        // --- UV Flashlight Mechanic ---
+        const uvContainer = document.getElementById('uv-container');
+        const uvOverlay = document.getElementById('uv-overlay');
+
+        if(uvContainer && uvOverlay) {
+            uvOverlay.style.background = '#0f172a';
+            
+            uvContainer.addEventListener('mousemove', (e) => {
+                const rect = uvContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const hint = uvContainer.querySelector('.scan-hint');
+                if(hint) hint.style.opacity = '0';
+                
+                uvOverlay.style.background = `radial-gradient(circle 120px at ${x}px ${y}px, transparent 0%, rgba(15,23,42,0.85) 50%, #0f172a 100%)`;
+            });
+            
+            uvContainer.addEventListener('mouseleave', () => {
+                uvOverlay.style.background = '#0f172a';
+                const hint = uvContainer.querySelector('.scan-hint');
+                if(hint) hint.style.opacity = '1';
+            });
+        }
+
+        // --- Rating ---
+        function rate(n) {
+            const drops = document.querySelectorAll('.anvil-icon');
+            drops.forEach((d, i) => {
+                d.classList.toggle('grayscale', i >= n);
+                d.classList.toggle('opacity-30', i >= n);
+                if(i < n) d.style.filter = "drop-shadow(4px 4px 0px #0f172a)";
+                else d.style.filter = "none";
+            });
+            document.getElementById('rat-hub').classList.remove('hidden');
+            document.getElementById('star-c').innerText = n;
+        }
+
+        // Initialize
+        updatePagination();
+    </script>
+</body>
+</html>
